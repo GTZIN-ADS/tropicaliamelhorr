@@ -1,0 +1,172 @@
+{
+  "entities": {
+    "StoreSettingsDoc": {
+      "title": "StoreSettingsDoc",
+      "description": "Global store settings, opening hours, Pix configuration, and branding",
+      "type": "object",
+      "properties": {
+        "storeName": { "type": "string", "maxLength": 120 },
+        "logoUrl": { "type": "string", "maxLength": 450000 },
+        "heroBowlUrl": { "type": "string", "maxLength": 450000 },
+        "heroVideoUrl": { "type": "string", "maxLength": 2000 },
+        "heroBannerUrl": { "type": "string", "maxLength": 450000 },
+        "teamPhotos": { "type": "array" },
+        "manualOpenOverride": { "type": "string", "enum": ["auto", "open", "closed"] },
+        "openingHours": { "type": "object" },
+        "deliveryFee": { "type": "number" },
+        "estimatedTime": { "type": "string", "maxLength": 80 },
+        "pickupAddress": { "type": "string", "maxLength": 300 },
+        "pixKey": { "type": "string", "maxLength": 160 },
+        "pixKeyDisplay": { "type": "string", "maxLength": 160 },
+        "pixReceiverName": { "type": "string", "maxLength": 120 },
+        "pixReceiverCity": { "type": "string", "maxLength": 120 },
+        "whatsappNumber": { "type": "string", "maxLength": 30 },
+        "instagramHandle": { "type": "string", "maxLength": 80 },
+        "statusMessages": { "type": "object" },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["storeName", "manualOpenOverride", "deliveryFee", "pixKey", "whatsappNumber"]
+    },
+    "BuilderConfigDoc": {
+      "title": "BuilderConfigDoc",
+      "description": "Configuration for the custom acai bowl builder",
+      "type": "object",
+      "properties": {
+        "sizes": { "type": "array" },
+        "doseDupla": { "type": "array" },
+        "steps": { "type": "array" },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["sizes", "doseDupla", "steps"]
+    },
+    "OrderCounterDoc": {
+      "title": "OrderCounterDoc",
+      "description": "Atomic sequential order number counter",
+      "type": "object",
+      "properties": {
+        "nextOrderNumber": { "type": "integer" },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["nextOrderNumber"]
+    },
+    "MenuCategory": {
+      "title": "MenuCategory",
+      "description": "Menu category definition",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "slug": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 120 },
+        "subtitle": { "type": "string", "maxLength": 240 },
+        "sortOrder": { "type": "integer" },
+        "isStar": { "type": "boolean" },
+        "layoutType": { "type": "string", "enum": ["builder", "carousel", "mosaic", "list", "highlight"] }
+      },
+      "required": ["id", "slug", "name", "sortOrder", "isStar", "layoutType"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Menu product item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "categoryId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 160 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "price": { "type": "number" },
+        "imageUrl": { "type": "string", "maxLength": 450000 },
+        "badge": { "type": "string", "maxLength": 60 },
+        "available": { "type": "boolean" },
+        "sortOrder": { "type": "integer" },
+        "alcoholWarning": { "type": "boolean" },
+        "optionGroups": { "type": "array" }
+      },
+      "required": ["id", "categoryId", "name", "price", "available", "sortOrder"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer order persisted permanently in order history",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "orderNumber": { "type": "integer" },
+        "customerName": { "type": "string", "maxLength": 160 },
+        "customerWhatsapp": { "type": "string", "maxLength": 30 },
+        "customerToken": { "type": "string", "minLength": 12, "maxLength": 128 },
+        "deliveryType": { "type": "string", "enum": ["delivery", "pickup"] },
+        "address": { "type": "object" },
+        "paymentMethod": { "type": "string", "enum": ["pix", "card", "cash"] },
+        "cashChangeFor": { "type": "number" },
+        "pixCode": { "type": "string", "maxLength": 1000 },
+        "pixReceiptUrl": { "type": "string", "maxLength": 550000 },
+        "pixReceiptName": { "type": "string", "maxLength": 240 },
+        "pixConfirmed": { "type": "boolean" },
+        "items": { "type": "array" },
+        "subtotal": { "type": "number" },
+        "deliveryFee": { "type": "number" },
+        "total": { "type": "number" },
+        "status": {
+          "type": "string",
+          "enum": ["awaiting_payment", "pending", "preparing", "ready", "out_for_delivery", "delivered", "cancelled"]
+        },
+        "cancelReason": { "type": "string", "maxLength": 300 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": [
+        "id",
+        "orderNumber",
+        "customerName",
+        "customerWhatsapp",
+        "customerToken",
+        "deliveryType",
+        "paymentMethod",
+        "pixConfirmed",
+        "items",
+        "subtotal",
+        "deliveryFee",
+        "total",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "StaffUserRecord": {
+      "title": "StaffUserRecord",
+      "description": "Authorized admin/attendant account record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "maxLength": 120 },
+        "email": { "type": "string", "maxLength": 160 },
+        "passwordHash": { "type": "string", "maxLength": 200 },
+        "role": { "type": "string", "enum": ["owner", "attendant"] },
+        "active": { "type": "boolean" },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "name", "email", "passwordHash", "role", "active", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/store_config/{configId}": {
+      "schema": { "$ref": "#/entities/StoreSettingsDoc" },
+      "description": "Storefront settings, builder configuration, and sequential order counter"
+    },
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/MenuCategory" },
+      "description": "Storefront menu categories"
+    },
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Storefront products"
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Customer orders synchronized in real time across all devices"
+    },
+    "/staff_users/{staffId}": {
+      "schema": { "$ref": "#/entities/StaffUserRecord" },
+      "description": "Admin and attendant staff accounts"
+    }
+  }
+}

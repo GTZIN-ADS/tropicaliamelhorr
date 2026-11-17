@@ -1,0 +1,274 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidStoreSettings(data) {
+      return data.keys().hasAll([
+          'storeName',
+          'manualOpenOverride',
+          'deliveryFee',
+          'pixKey',
+          'whatsappNumber'
+        ]) &&
+        data.keys().hasOnly([
+          'storeName',
+          'logoUrl',
+          'heroBowlUrl',
+          'heroVideoUrl',
+          'heroBannerUrl',
+          'teamPhotos',
+          'manualOpenOverride',
+          'openingHours',
+          'deliveryFee',
+          'estimatedTime',
+          'pickupAddress',
+          'pixKey',
+          'pixKeyDisplay',
+          'pixReceiverName',
+          'pixReceiverCity',
+          'whatsappNumber',
+          'instagramHandle',
+          'statusMessages',
+          'updatedAt'
+        ]) &&
+        data.storeName is string && data.storeName.size() >= 1 && data.storeName.size() <= 120 &&
+        data.manualOpenOverride in ['auto', 'open', 'closed'] &&
+        data.deliveryFee is number && data.deliveryFee >= 0 && data.deliveryFee <= 500 &&
+        data.pixKey is string && data.pixKey.size() <= 160 &&
+        data.whatsappNumber is string && data.whatsappNumber.size() <= 30 &&
+        (!('logoUrl' in data) || (data.logoUrl is string && data.logoUrl.size() <= 450000)) &&
+        (!('heroBowlUrl' in data) || (data.heroBowlUrl is string && data.heroBowlUrl.size() <= 450000)) &&
+        (!('heroVideoUrl' in data) || (data.heroVideoUrl is string && data.heroVideoUrl.size() <= 2000)) &&
+        (!('heroBannerUrl' in data) || (data.heroBannerUrl is string && data.heroBannerUrl.size() <= 450000)) &&
+        (!('teamPhotos' in data) || (data.teamPhotos is list && data.teamPhotos.size() <= 25)) &&
+        (!('estimatedTime' in data) || (data.estimatedTime is string && data.estimatedTime.size() <= 80)) &&
+        (!('pickupAddress' in data) || (data.pickupAddress is string && data.pickupAddress.size() <= 300)) &&
+        (!('pixKeyDisplay' in data) || (data.pixKeyDisplay is string && data.pixKeyDisplay.size() <= 160)) &&
+        (!('pixReceiverName' in data) || (data.pixReceiverName is string && data.pixReceiverName.size() <= 120)) &&
+        (!('pixReceiverCity' in data) || (data.pixReceiverCity is string && data.pixReceiverCity.size() <= 120)) &&
+        (!('instagramHandle' in data) || (data.instagramHandle is string && data.instagramHandle.size() <= 80)) &&
+        (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64));
+    }
+
+    function isValidBuilderConfig(data) {
+      return data.keys().hasAll(['sizes', 'doseDupla', 'steps']) &&
+        data.keys().hasOnly(['sizes', 'doseDupla', 'steps', 'updatedAt']) &&
+        data.sizes is list && data.sizes.size() <= 30 &&
+        data.doseDupla is list && data.doseDupla.size() <= 20 &&
+        data.steps is list && data.steps.size() <= 20 &&
+        (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64));
+    }
+
+    function isValidOrderCounter(data) {
+      return data.keys().hasAll(['nextOrderNumber']) &&
+        data.keys().hasOnly(['nextOrderNumber', 'updatedAt']) &&
+        data.nextOrderNumber is int && data.nextOrderNumber >= 100 && data.nextOrderNumber <= 10000000 &&
+        (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64));
+    }
+
+    function isValidCategory(data) {
+      return data.keys().hasAll(['id', 'slug', 'name', 'sortOrder', 'isStar', 'layoutType']) &&
+        data.keys().hasOnly(['id', 'slug', 'name', 'subtitle', 'sortOrder', 'isStar', 'layoutType']) &&
+        isValidId(data.id) &&
+        data.slug is string && data.slug.size() >= 1 && data.slug.size() <= 128 &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+        (!('subtitle' in data) || (data.subtitle is string && data.subtitle.size() <= 240)) &&
+        data.sortOrder is int && data.sortOrder >= 0 && data.sortOrder <= 10000 &&
+        data.isStar is bool &&
+        data.layoutType in ['builder', 'carousel', 'mosaic', 'list', 'highlight'];
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['id', 'categoryId', 'name', 'price', 'available', 'sortOrder']) &&
+        data.keys().hasOnly([
+          'id',
+          'categoryId',
+          'name',
+          'description',
+          'price',
+          'imageUrl',
+          'badge',
+          'available',
+          'sortOrder',
+          'alcoholWarning',
+          'optionGroups'
+        ]) &&
+        isValidId(data.id) &&
+        data.categoryId is string && data.categoryId.size() >= 1 && data.categoryId.size() <= 128 &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 160 &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 1000)) &&
+        data.price is number && data.price >= 0 && data.price <= 50000 &&
+        (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 450000)) &&
+        (!('badge' in data) || (data.badge is string && data.badge.size() <= 60)) &&
+        data.available is bool &&
+        data.sortOrder is int && data.sortOrder >= 0 && data.sortOrder <= 10000 &&
+        (!('alcoholWarning' in data) || data.alcoholWarning is bool) &&
+        (!('optionGroups' in data) || (data.optionGroups is list && data.optionGroups.size() <= 25));
+    }
+
+    function isValidOrderStatus(status) {
+      return status in [
+        'awaiting_payment',
+        'pending',
+        'preparing',
+        'ready',
+        'out_for_delivery',
+        'delivered',
+        'cancelled'
+      ];
+    }
+
+    function isValidOrderShape(data) {
+      return data.keys().hasAll([
+          'id',
+          'orderNumber',
+          'customerName',
+          'customerWhatsapp',
+          'customerToken',
+          'deliveryType',
+          'paymentMethod',
+          'pixConfirmed',
+          'items',
+          'subtotal',
+          'deliveryFee',
+          'total',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id',
+          'orderNumber',
+          'customerName',
+          'customerWhatsapp',
+          'customerToken',
+          'deliveryType',
+          'address',
+          'paymentMethod',
+          'cashChangeFor',
+          'pixCode',
+          'pixReceiptUrl',
+          'pixReceiptName',
+          'pixConfirmed',
+          'items',
+          'subtotal',
+          'deliveryFee',
+          'total',
+          'status',
+          'cancelReason',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        isValidId(data.id) &&
+        data.orderNumber is int && data.orderNumber >= 100 && data.orderNumber <= 10000000 &&
+        data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 160 &&
+        data.customerWhatsapp is string && data.customerWhatsapp.size() >= 10 && data.customerWhatsapp.size() <= 30 &&
+        data.customerToken is string && data.customerToken.size() >= 12 && data.customerToken.size() <= 128 &&
+        data.deliveryType in ['delivery', 'pickup'] &&
+        (!('address' in data) || data.address == null || data.address is map) &&
+        data.paymentMethod in ['pix', 'card', 'cash'] &&
+        (!('cashChangeFor' in data) || data.cashChangeFor == null || (data.cashChangeFor is number && data.cashChangeFor >= 0 && data.cashChangeFor <= 50000)) &&
+        (!('pixCode' in data) || data.pixCode == null || (data.pixCode is string && data.pixCode.size() <= 1000)) &&
+        (!('pixReceiptUrl' in data) || data.pixReceiptUrl == null || (data.pixReceiptUrl is string && data.pixReceiptUrl.size() <= 550000)) &&
+        (!('pixReceiptName' in data) || data.pixReceiptName == null || (data.pixReceiptName is string && data.pixReceiptName.size() <= 240)) &&
+        data.pixConfirmed is bool &&
+        data.items is list && data.items.size() >= 1 && data.items.size() <= 50 &&
+        data.subtotal is number && data.subtotal >= 0 && data.subtotal <= 50000 &&
+        data.deliveryFee is number && data.deliveryFee >= 0 && data.deliveryFee <= 500 &&
+        data.total is number && data.total >= 0 && data.total <= 50500 &&
+        isValidOrderStatus(data.status) &&
+        (!('cancelReason' in data) || data.cancelReason == null || (data.cancelReason is string && data.cancelReason.size() <= 300)) &&
+        data.createdAt is string && data.createdAt.size() >= 10 && data.createdAt.size() <= 64 &&
+        data.updatedAt is string && data.updatedAt.size() >= 10 && data.updatedAt.size() <= 64;
+    }
+
+    function isValidStaffUser(data) {
+      return data.keys().hasAll(['id', 'name', 'email', 'passwordHash', 'role', 'active', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'name', 'email', 'passwordHash', 'role', 'active', 'createdAt']) &&
+        isValidId(data.id) &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 160 &&
+        data.passwordHash is string && data.passwordHash.size() >= 10 && data.passwordHash.size() <= 200 &&
+        data.role in ['owner', 'attendant'] &&
+        data.active is bool &&
+        data.createdAt is string && data.createdAt.size() >= 10 && data.createdAt.size() <= 64;
+    }
+
+    match /test/{docId} {
+      allow get: if docId == 'connection';
+    }
+
+    match /store_config/{configId} {
+      allow get: if isValidId(configId) && configId in ['settings', 'builder', 'counters'];
+      allow list: if request.time is timestamp;
+      allow create, update: if isValidId(configId) && (
+        (configId == 'settings' && isValidStoreSettings(incoming())) ||
+        (configId == 'builder' && isValidBuilderConfig(incoming())) ||
+        (configId == 'counters' && isValidOrderCounter(incoming()))
+      );
+    }
+
+    match /categories/{categoryId} {
+      allow get: if isValidId(categoryId);
+      allow list: if request.time is timestamp;
+      allow create: if isValidId(categoryId) && isValidCategory(incoming()) && incoming().id == categoryId;
+      allow update: if isValidId(categoryId) && isValidCategory(incoming()) && incoming().id == existing().id;
+      allow delete: if isValidId(categoryId);
+    }
+
+    match /products/{productId} {
+      allow get: if isValidId(productId);
+      allow list: if request.time is timestamp;
+      allow create: if isValidId(productId) && isValidProduct(incoming()) && incoming().id == productId;
+      allow update: if isValidId(productId) && isValidProduct(incoming()) && incoming().id == existing().id;
+      allow delete: if isValidId(productId);
+    }
+
+    match /orders/{orderId} {
+      allow get: if isValidId(orderId);
+      allow list: if request.time is timestamp;
+      allow create: if isValidId(orderId) &&
+        isValidOrderShape(incoming()) &&
+        incoming().id == orderId &&
+        incoming().status in ['awaiting_payment', 'pending'] &&
+        incoming().pixConfirmed == false;
+      allow update: if isValidId(orderId) &&
+        isValidOrderShape(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().orderNumber == existing().orderNumber &&
+        incoming().customerToken == existing().customerToken &&
+        incoming().createdAt == existing().createdAt &&
+        (
+          (
+            incoming().diff(existing()).affectedKeys().hasOnly(['pixReceiptUrl', 'pixReceiptName', 'status', 'updatedAt']) &&
+            incoming().pixConfirmed == existing().pixConfirmed &&
+            (incoming().status == existing().status || (existing().status == 'awaiting_payment' && incoming().status == 'pending'))
+          ) ||
+          incoming().diff(existing()).affectedKeys().hasOnly(['status', 'cancelReason', 'pixConfirmed', 'updatedAt'])
+        );
+    }
+
+    match /staff_users/{staffId} {
+      allow get: if isValidId(staffId);
+      allow list: if request.time is timestamp;
+      allow create: if isValidId(staffId) && isValidStaffUser(incoming()) && incoming().id == staffId;
+      allow update: if isValidId(staffId) && isValidStaffUser(incoming()) && incoming().id == existing().id && incoming().email == existing().email;
+      allow delete: if isValidId(staffId);
+    }
+  }
+}
